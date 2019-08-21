@@ -1,25 +1,5 @@
-import fs from "fs";
-import { parse } from "@babel/parser";
-import traverse from "@babel/traverse";
-
-const isPositionWithin = (pos, loc) =>
-  loc.start.line <= pos.line &&
-  loc.end.line >= pos.line &&
-  loc.start.column <= pos.column &&
-  loc.end.column >= pos.column;
-
-const find = (path, test, { furthest } = {}) => {
-  let current = path;
-  let found;
-  while (current) {
-    if (test(current)) {
-      found = current;
-      if (!furthest) return found;
-    }
-    current = current.parentPath;
-  }
-  return found;
-};
+import { getPosition } from "./position";
+import { find } from "./find";
 
 // const findHostObject = path =>
 //   find(path, c => c.isObjectExpression(), { furthest: true });
@@ -60,21 +40,7 @@ const findCallRefs = binding => {
 };
 
 const run = ({ file, position }) => {
-  const source = fs.readFileSync(file, "utf8");
-
-  const ast = parse(source, {
-    sourceType: "unambiguous"
-  });
-
-  let target;
-
-  traverse(ast, {
-    enter(path) {
-      if (isPositionWithin(position, path.node.loc)) {
-        target = path;
-      }
-    }
-  });
+  const target = getPosition({ file, position });
 
   let refs = findVariableRefs(target);
 
