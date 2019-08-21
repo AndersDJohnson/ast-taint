@@ -3,4 +3,6 @@ const myActionCreator = payload => ({
   payload
 });
 
-export { myActionCreator };
+const doMyAction = action => dispatch(action);
+
+export { myActionCreator, doMyAction };

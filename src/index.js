@@ -1,9 +1,6 @@
 import { getPosition } from "./position";
 import { find } from "./find";
 
-// const findHostObject = path =>
-//   find(path, c => c.isObjectExpression(), { furthest: true });
-
 // TODO: Only check for variables within a certain shared scope?
 const findVariable = path => find(path, c => c.isVariableDeclarator());
 
@@ -22,31 +19,48 @@ const findVariableRefs = path => {
 
   binding.referencePaths.forEach(referencePath => {
     const v2 = findVariable(referencePath);
-    references = references.concat(findRefs(v2));
+    references = references.concat(findVariableRefs(v2));
   });
 
   return references;
 };
 
-const findCallRefs = binding => {
-  let references = [];
+const walk = path => {
+  let refs = [];
+  // 0. find all variables derivative of target variable
+  // TODO: Annotate these indicating if only a nested key is infected.
+  let _refs = findVariableRefs(path);
 
-  binding.referencePaths.forEach(referencePath => {
-    const call = find(referencePath, c => c.isCallExpression());
-    references = references.concat();
+  refs = refs.concat(_refs);
+
+  // 1. for each such variable
+  // 2. find all functions called with variable
+  // 3. lookup those functions, considering args
+  _refs.forEach(ref => {
+    // console.log("ADJ var ref", ref);
+    ref.referencePaths.forEach(refPath => {
+      const call = find(refPath, c => c.isCallExpression());
+      if (!call) return;
+
+      const v3 = findVariable(call);
+
+      if (v3) {
+        refs = refs.concat(walk(v3));
+      }
+    });
   });
 
-  return references;
+  return refs;
 };
 
 const run = ({ file, position }) => {
+  // x. in a given function...
+
   const target = getPosition({ file, position });
 
-  let refs = findVariableRefs(target);
+  const refs = walk(target);
 
-  refs.forEach(ref => {
-    console.log("ADJ var ref", ref);
-  });
+  console.log(refs);
 };
 
 export { run };
