@@ -21,7 +21,7 @@ const getPosition = ({ file, position }) => {
 
   traverse(ast, {
     enter(path) {
-      if (isPositionWithin(position, path.node.loc) {A
+      if (isPositionWithin(position, path.node.loc) {
         target = path;
       }
     }
