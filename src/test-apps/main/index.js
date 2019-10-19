@@ -1,9 +1,13 @@
 import { myActionCreator, doMyAction } from "./action";
 
-const myData = { hello: "there" };
+const boot = () => {
+  const myData = { hello: "there" };
 
-const myActionData = {
-  greeting: myData.hello
+  const myActionData = {
+    greeting: myData.hello
+  };
+
+  const moreActionData = transform(myActionData);
+
+  doMyAction(myActionCreator(moreActionData));
 };
-
-doMyAction(myActionCreator(myActionData));

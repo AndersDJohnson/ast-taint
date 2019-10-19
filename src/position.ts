@@ -1,6 +1,8 @@
-import fs from "fs";
+import * as fs from "fs";
 import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
+// import { Node } from '@babel/types'
+import { TraverseOptions, NodePath, Node } from '@types/babel__traverse'
 
 const isPositionWithin = (pos, loc) =>
   loc.start.line <= pos.line &&
@@ -19,11 +21,11 @@ const getPosition = ({ file, position }) => {
 
   traverse(ast, {
     enter(path) {
-      if (isPositionWithin(position, path.node.loc)) {
+      if (isPositionWithin(position, path.node.loc) {A
         target = path;
       }
     }
-  });
+  } as TraverseOptions<Node>);
 
   return target;
 };

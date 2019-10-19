@@ -1,4 +1,9 @@
-const find = (path, test, { furthest } = {}) => {
+interface Opts {
+  furthest?: boolean;
+}
+
+const find = (path, test, opts: Opts = {}) => {
+  const { furthest } = opts;
   let current = path;
   let found;
   while (current) {
