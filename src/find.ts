@@ -22,6 +22,13 @@ const find = (ast: BabelFile, test: Test) => {
 const findIdentifierWithName = (ast: BabelFile, name: string) =>
   find(ast, p => p.isIdentifier() && p.node.name === name);
 
+const findVariableDeclaratorWithName = (ast: BabelFile, name: string) =>
+  find(
+    ast,
+    // @ts-ignore
+    p => p.isVariableDeclarator() && p.node.id.name === "a"
+  );
+
 const findUp = (path: NodePath, test: Test, opts: Opts = {}) => {
   const { furthest } = opts;
   let current = path;
@@ -37,4 +44,4 @@ const findUp = (path: NodePath, test: Test, opts: Opts = {}) => {
   return found;
 };
 
-export { find, findIdentifierWithName, findUp };
+export { find, findUp, findIdentifierWithName, findVariableDeclaratorWithName };
