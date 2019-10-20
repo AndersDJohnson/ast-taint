@@ -1,8 +1,6 @@
 import * as fs from "fs";
 import { parse } from "@babel/parser";
-import traverse from "@babel/traverse";
-// import { Node } from '@babel/types'
-import { TraverseOptions, NodePath, Node } from '@types/babel__traverse'
+import traverse, { NodePath } from "@babel/traverse";
 
 const isPositionWithin = (pos, loc) =>
   loc.start.line <= pos.line &&
@@ -10,22 +8,22 @@ const isPositionWithin = (pos, loc) =>
   loc.start.column <= pos.column &&
   loc.end.column >= pos.column;
 
-const getPosition = ({ file, position }) => {
+const getPosition = ({ file, position }): NodePath | undefined => {
   const source = fs.readFileSync(file, "utf8");
 
   const ast = parse(source, {
     sourceType: "unambiguous"
   });
 
-  let target;
+  let target: NodePath;
 
   traverse(ast, {
     enter(path) {
-      if (isPositionWithin(position, path.node.loc) {
+      if (isPositionWithin(position, path.node.loc)) {
         target = path;
       }
     }
-  } as TraverseOptions<Node>);
+  });
 
   return target;
 };

@@ -1,8 +1,8 @@
 import { getPosition } from "./position";
-import { find } from "./find";
+import { findUp } from "./find";
 
 // // TODO: Only check for variables within a certain shared scope?
-// const findVariable = path => find(path, c => c.isVariableDeclarator());
+// const findVariable = path => findUp(path, c => c.isVariableDeclarator());
 
 // const findVariableRefs = path => {
 //   let references = [];
@@ -39,7 +39,7 @@ import { find } from "./find";
 //   _refs.forEach(ref => {
 //     // console.log("ADJ var ref", ref);
 //     ref.referencePaths.forEach(refPath => {
-//       const call = find(refPath, c => c.isCallExpression());
+//       const call = findUp(refPath, c => c.isCallExpression());
 //       if (!call) return;
 //
 //       // const v3 = findVariable(call);
@@ -56,9 +56,60 @@ import { find } from "./find";
 const run = ({ file, position }) => {
   // x. in a given function...
 
-  const target = getPosition({ file, position });
+  try {
+    const target = getPosition({ file, position });
 
-  console.log(target);
+    console.log(target);
+
+    if (!target.isIdentifier()) {
+      throw new Error("Can only target identifiers.");
+    }
+
+    const parent = findUp(target.parentPath, path => !path.isObjectProperty());
+
+    const memberTarget =
+      parent && parent.isMemberExpression() ? parent : target;
+
+    let object = memberTarget.node;
+    while (object.object) {
+      object = object.object;
+    }
+
+    const name = object ? object.name : memberTarget.node.name;
+
+    debugger;
+
+    const {
+      scope: {
+        bindings: { [name]: binding }
+      }
+    } = parent;
+
+    if (!binding) {
+      throw new Error("Can only resolve fields with bindings.");
+    }
+
+    const {
+      path: { node }
+    } = binding;
+
+    if (node.type !== "VariableDeclarator" && node.type !== "Identifier") {
+      throw new Error(
+        "Can only resolve identifiers with variable declarators in scope."
+      );
+    }
+
+    debugger;
+
+    const { kind } = binding;
+
+    return {
+      kind,
+      name: binding.identifier.name
+    };
+  } catch (error) {
+    console.error(error);
+  }
 
   // Goal: find dispatches
   // Either (A) in scope or (B) in another function receiving arguments this taints.

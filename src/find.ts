@@ -1,19 +1,26 @@
+import { NodePath } from "@babel/traverse";
+
 interface Opts {
   furthest?: boolean;
 }
 
-const find = (path, test, opts: Opts = {}) => {
+const findUp = (
+  path: NodePath,
+  test: (path: NodePath) => boolean,
+  opts: Opts = {}
+) => {
   const { furthest } = opts;
   let current = path;
   let found;
   while (current) {
     if (test(current)) {
       found = current;
-      if (!furthest) return found;
+      if (furthest) continue;
+      return found;
     }
     current = current.parentPath;
   }
   return found;
 };
 
-export { find };
+export { findUp };
