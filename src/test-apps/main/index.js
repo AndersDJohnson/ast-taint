@@ -1,7 +1,7 @@
 import { myActionCreator, doMyAction } from "./action";
 
 const boot = (env, flag, short) => {
-  const myData = { hello: env.args.hello, flag: flag, short };
+  const myData = { hello: env.args.hello, also: env.also, flag: flag, short };
 
   const myActionData = {
     greeting: myData.hello

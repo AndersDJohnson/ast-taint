@@ -1,14 +1,23 @@
 import { NodePath, Binding } from "@babel/traverse";
 import { findUp } from "./find";
+import { isMemberExpression, isObjectProperty } from "@babel/types";
 
 const findHost = (path: NodePath) => {
   const parent = findUp(path.parentPath, path => !path.isObjectProperty());
 
-  const memberTarget = parent && parent.isMemberExpression() ? parent : path;
+  const node = isMemberExpression(path.container)
+    ? path.container
+    : isObjectProperty(path.container) &&
+      isMemberExpression(path.container.value)
+    ? path.container.value
+    : parent && parent.isMemberExpression()
+    ? parent.node
+    : path.node;
 
   let name;
-  if (memberTarget.isMemberExpression()) {
-    const { node } = memberTarget;
+  // @ts-ignore
+  if (node.object) {
+    // @ts-ignore
     let object = node.object;
     while (object) {
       // @ts-ignore
@@ -17,7 +26,6 @@ const findHost = (path: NodePath) => {
       object = object.object;
     }
   } else {
-    const { node } = memberTarget;
     // @ts-ignore
     name = node.name;
   }

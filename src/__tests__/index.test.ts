@@ -10,10 +10,19 @@ describe("run", () => {
     expect(ran).toBe("OK");
   });
 
-  it.only("should find source const then explore taint", () => {
+  it.skip("should find source const then explore taint", () => {
     const ran = run({
       file: `${__dirname}/../test-apps/main/index.js`,
       position: { line: 12, column: 18 }
+    });
+
+    console.log(ran);
+  });
+
+  it.only("should find source const then explore taint 2", () => {
+    const ran = run({
+      file: `${__dirname}/../test-apps/main/index.js`,
+      position: { line: 10, column: 33 }
     });
 
     console.log(ran);

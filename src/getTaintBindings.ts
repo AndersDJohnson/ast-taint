@@ -1,15 +1,10 @@
 import { isIdentifier } from "@babel/types";
 import traverse, { NodePath } from "@babel/traverse";
-import { BindingWithUsagePath } from "./findBindings";
-
-const getBindingForName = (path, name) => {
-  const {
-    scope: {
-      bindings: { [name]: binding }
-    }
-  } = path;
-  return binding;
-};
+import {
+  BindingWithUsagePath,
+  getBindingForName,
+  findBindings
+} from "./findBindings";
 
 const getTaintBindings = (path: NodePath) => {
   const taintedBy: BindingWithUsagePath[] = [];
@@ -20,7 +15,8 @@ const getTaintBindings = (path: NodePath) => {
     const binding = getBindingForName(path, path.node.init.name);
     if (binding) {
       const bindingWithMember: BindingWithUsagePath = {
-        binding
+        binding,
+        usage: path
       };
       taintedBy.push(bindingWithMember);
     }
@@ -30,15 +26,12 @@ const getTaintBindings = (path: NodePath) => {
       {
         enter(p) {
           if (p.isIdentifier()) {
-            const binding = getBindingForName(p, p.node.name);
-            const bindingWithMember: BindingWithUsagePath = {
-              binding,
-              usage: p
-            };
-            taintedBy.push(bindingWithMember);
-            if (p.parentPath.isMemberExpression()) {
-              p.skip();
-            }
+            // only value identifiers for object properties
+            if (p.key === "key") return;
+            const bindings = findBindings(p);
+            bindings.forEach(bindingWithMember => {
+              taintedBy.push(bindingWithMember);
+            });
           }
         }
       },
@@ -47,8 +40,6 @@ const getTaintBindings = (path: NodePath) => {
       path.parentPath
     );
   }
-
-  debugger;
 
   return taintedBy;
 };

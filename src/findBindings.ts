@@ -6,25 +6,32 @@ interface BindingWithUsagePath {
   usage?: NodePath;
 }
 
-const findBindings = (path: NodePath) => {
-  const bindings: BindingWithUsagePath[] = [];
-
-  const name = findHost(path);
-
+const getBindingForName = (path, name) => {
   const {
     scope: {
       bindings: { [name]: binding }
     }
   } = path;
+  return binding;
+};
 
-  const bindingWithMember: BindingWithUsagePath = {
-    binding,
-    usage: path
-  };
+const findBindings = (path: NodePath) => {
+  const bindings: BindingWithUsagePath[] = [];
 
-  bindings.push(bindingWithMember);
+  const name = findHost(path);
+
+  const binding = getBindingForName(path, name);
+
+  if (binding) {
+    const bindingWithMember: BindingWithUsagePath = {
+      binding,
+      usage: path
+    };
+
+    bindings.push(bindingWithMember);
+  }
 
   return bindings;
 };
 
-export { BindingWithUsagePath, findBindings };
+export { BindingWithUsagePath, getBindingForName, findBindings };

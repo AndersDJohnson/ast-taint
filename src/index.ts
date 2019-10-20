@@ -1,5 +1,6 @@
 import { NodePath } from "@babel/traverse";
 import { Identifier, VariableDeclarator } from "@babel/types";
+import { flatten, isEqual, uniqWith } from "lodash";
 import { getPosition } from "./position";
 import { getTaintBindings } from "./getTaintBindings";
 import { findBindings } from "./findBindings";
@@ -60,7 +61,17 @@ import { findBindings } from "./findBindings";
 const findTaintForConst = (path: NodePath) => {
   const taintedBy = getTaintBindings(path);
 
-  return taintedBy.map(t => findTaintForConst(t.path));
+  const deps = flatten(taintedBy.map(t => findTaintForConst(t.binding.path)));
+
+  // return [...(deps.length ? [] : taintedBy), ...deps];
+
+  return uniqWith(
+    [...(deps.length ? [] : taintedBy), ...deps],
+    (a, b) =>
+      isEqual(a.binding.identifier.loc, b.binding.identifier.loc) &&
+      // a.binding === b.binding &&
+      isEqual(a.usage.node.loc, b.usage.node.loc)
+  );
 };
 
 const run = ({ file, position }) => {
@@ -96,7 +107,7 @@ const run = ({ file, position }) => {
 
     // TODO: Handle multi-init consts?
     if (kind === "const") {
-      findTaintForConst(path);
+      const allTaints = findTaintForConst(path);
       debugger;
     }
 
