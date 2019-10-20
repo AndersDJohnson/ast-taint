@@ -62,16 +62,42 @@ describe("findHost", () => {
 
     const bindings = getTaintBindings(v);
 
-    expect(bindings).toHaveLength(2);
+    expect(bindings).toHaveLength(3);
     expect(bindings).toMatchObject([
       {
-        identifier: {
-          name: "b"
+        binding: {
+          identifier: {
+            name: "b"
+          }
+        },
+        usage: {
+          node: {
+            name: "b"
+          }
         }
       },
       {
-        identifier: {
-          name: "c"
+        binding: {
+          identifier: {
+            name: "c"
+          }
+        },
+        usage: {
+          node: {
+            name: "c"
+          }
+        }
+      },
+      {
+        binding: {
+          identifier: {
+            name: "c"
+          }
+        },
+        usage: {
+          node: {
+            name: "d"
+          }
         }
       }
     ]);

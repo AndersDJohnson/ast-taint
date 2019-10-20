@@ -1,22 +1,28 @@
 import { isIdentifier } from "@babel/types";
-import traverse, { NodePath, Binding } from "@babel/traverse";
-import { uniq } from "lodash";
-import { findBindings } from "./findBindings";
+import traverse, { NodePath } from "@babel/traverse";
+import { BindingWithUsagePath } from "./findBindings";
+
+const getBindingForName = (path, name) => {
+  const {
+    scope: {
+      bindings: { [name]: binding }
+    }
+  } = path;
+  return binding;
+};
 
 const getTaintBindings = (path: NodePath) => {
-  const taintedBy: Binding[] = [];
+  const taintedBy: BindingWithUsagePath[] = [];
 
   if (!path.isVariableDeclarator()) return taintedBy;
 
   if (isIdentifier(path.node.init)) {
-    const name = path.node.init.name;
-    const {
-      scope: {
-        bindings: { [name]: binding }
-      }
-    } = path;
+    const binding = getBindingForName(path, path.node.init.name);
     if (binding) {
-      taintedBy.push(binding);
+      const bindingWithMember: BindingWithUsagePath = {
+        binding
+      };
+      taintedBy.push(bindingWithMember);
     }
   } else {
     traverse(
@@ -24,10 +30,15 @@ const getTaintBindings = (path: NodePath) => {
       {
         enter(p) {
           if (p.isIdentifier()) {
-            // TODO: Skip functions?
-            const bindings = findBindings(p);
-            bindings.forEach(binding => taintedBy.push(binding));
-            p.skip();
+            const binding = getBindingForName(p, p.node.name);
+            const bindingWithMember: BindingWithUsagePath = {
+              binding,
+              usage: p
+            };
+            taintedBy.push(bindingWithMember);
+            if (p.parentPath.isMemberExpression()) {
+              p.skip();
+            }
           }
         }
       },
@@ -39,7 +50,7 @@ const getTaintBindings = (path: NodePath) => {
 
   debugger;
 
-  return uniq(taintedBy);
+  return taintedBy;
 };
 
 export { getTaintBindings };

@@ -80,7 +80,7 @@ const run = ({ file, position }) => {
     }
 
     // TODO: Not just the first
-    const binding = bindings[0];
+    const { binding } = bindings[0];
 
     const {
       path: { node }

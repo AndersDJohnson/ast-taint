@@ -1,8 +1,13 @@
 import { NodePath, Binding } from "@babel/traverse";
 import { findHost } from "./findHost";
 
+interface BindingWithUsagePath {
+  binding: Binding;
+  usage?: NodePath;
+}
+
 const findBindings = (path: NodePath) => {
-  const bindings: Binding[] = [];
+  const bindings: BindingWithUsagePath[] = [];
 
   const name = findHost(path);
 
@@ -12,9 +17,14 @@ const findBindings = (path: NodePath) => {
     }
   } = path;
 
-  bindings.push(binding);
+  const bindingWithMember: BindingWithUsagePath = {
+    binding,
+    usage: path
+  };
+
+  bindings.push(bindingWithMember);
 
   return bindings;
 };
 
-export { findBindings };
+export { BindingWithUsagePath, findBindings };
