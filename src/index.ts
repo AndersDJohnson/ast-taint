@@ -1,5 +1,8 @@
+import { NodePath } from "@babel/traverse";
+import { Identifier, VariableDeclarator } from "@babel/types";
 import { getPosition } from "./position";
-import { findUp } from "./find";
+import { getTaintBindings } from "./getTaintBindings";
+import { findBindings } from "./findBindings";
 
 // // TODO: Only check for variables within a certain shared scope?
 // const findVariable = path => findUp(path, c => c.isVariableDeclarator());
@@ -53,9 +56,14 @@ import { findUp } from "./find";
 //   return refs;
 // };
 
-const run = ({ file, position }) => {
-  // x. in a given function...
+// TODO: Handle multi-init consts?
+const findTaintForConst = (path: NodePath) => {
+  const taintedBy = getTaintBindings(path);
 
+  return taintedBy.map(t => findTaintForConst(t.path));
+};
+
+const run = ({ file, position }) => {
   try {
     const target = getPosition({ file, position });
 
@@ -65,29 +73,14 @@ const run = ({ file, position }) => {
       throw new Error("Can only target identifiers.");
     }
 
-    const parent = findUp(target.parentPath, path => !path.isObjectProperty());
+    const bindings = findBindings(target);
 
-    const memberTarget =
-      parent && parent.isMemberExpression() ? parent : target;
-
-    let object = memberTarget.node;
-    while (object.object) {
-      object = object.object;
-    }
-
-    const name = object ? object.name : memberTarget.node.name;
-
-    debugger;
-
-    const {
-      scope: {
-        bindings: { [name]: binding }
-      }
-    } = parent;
-
-    if (!binding) {
+    if (!bindings || !bindings.length) {
       throw new Error("Can only resolve fields with bindings.");
     }
+
+    // TODO: Not just the first
+    const binding = bindings[0];
 
     const {
       path: { node }
@@ -99,9 +92,13 @@ const run = ({ file, position }) => {
       );
     }
 
-    debugger;
+    const { kind, path } = binding;
 
-    const { kind } = binding;
+    // TODO: Handle multi-init consts?
+    if (kind === "const") {
+      findTaintForConst(path);
+      debugger;
+    }
 
     return {
       kind,
@@ -110,16 +107,6 @@ const run = ({ file, position }) => {
   } catch (error) {
     console.error(error);
   }
-
-  // Goal: find dispatches
-  // Either (A) in scope or (B) in another function receiving arguments this taints.
-
-  // First, let's taint any variables we participate in.
-
-  // if (target.parentPath)
-
-  // const refs = findVariableRefs(target);
-  // console.log(refs);
 };
 
 export { run };

@@ -1,17 +1,31 @@
-import { NodePath } from "@babel/traverse";
+import { File as BabelFile } from "@babel/types";
+import traverse, { NodePath } from "@babel/traverse";
 
 interface Opts {
   furthest?: boolean;
 }
 
-const findUp = (
-  path: NodePath,
-  test: (path: NodePath) => boolean,
-  opts: Opts = {}
-) => {
+type Test = (path: NodePath) => boolean;
+
+const find = (ast: BabelFile, test: Test) => {
+  let found: NodePath;
+  traverse(ast, {
+    enter(p) {
+      if (test(p)) {
+        if (!found) found = p;
+      }
+    }
+  });
+  return found;
+};
+
+const findIdentifierWithName = (ast: BabelFile, name: string) =>
+  find(ast, p => p.isIdentifier() && p.node.name === name);
+
+const findUp = (path: NodePath, test: Test, opts: Opts = {}) => {
   const { furthest } = opts;
   let current = path;
-  let found;
+  let found: typeof current;
   while (current) {
     if (test(current)) {
       found = current;
@@ -23,4 +37,4 @@ const findUp = (
   return found;
 };
 
-export { findUp };
+export { find, findIdentifierWithName, findUp };

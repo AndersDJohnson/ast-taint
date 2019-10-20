@@ -10,7 +10,7 @@ describe("run", () => {
     expect(ran).toBe("OK");
   });
 
-  it.skip("should find source", () => {
+  it.only("should find source const then explore taint", () => {
     const ran = run({
       file: `${__dirname}/../test-apps/main/index.js`,
       position: { line: 12, column: 18 }
@@ -19,7 +19,7 @@ describe("run", () => {
     console.log(ran);
   });
 
-  it.only("will fail when target doesn't have binding", () => {
+  it.skip("will find host object for property access target", () => {
     const ran = run({
       file: `${__dirname}/../test-apps/main/index.js`,
       position: { line: 10, column: 36 }
@@ -28,7 +28,7 @@ describe("run", () => {
     console.log(ran);
   });
 
-  it("to find property coming from object as param", () => {
+  it.skip("to find property coming from object as param", () => {
     const ran = run({
       file: `${__dirname}/../test-apps/main/index.js`,
       position: { line: 4, column: 38 }
